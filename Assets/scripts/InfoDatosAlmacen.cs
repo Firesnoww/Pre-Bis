@@ -45,6 +45,7 @@ public class InfoDatosAlmacen : MonoBehaviour
     public void GuardarDatos()
     {
         string datosAGuardar = ObtenerStringDesdeEstados();
+        datoRecibido = ObtenerStringDesdeEstados();
         PlayerPrefs.SetString("DatosLibelulas", datosAGuardar);
         PlayerPrefs.Save();
     }
@@ -65,11 +66,13 @@ public class InfoDatosAlmacen : MonoBehaviour
             {
                 ListaEstados[indice] = nuevoEstado;
                 GuardarDatos(); // guarda inmediatamente después de cambiar
+                AplicarEstadosAUI(ListaEstados);
             }
         }
+
     }
 
-    public void DescubrirInfoDeBoton(int id)
+    public void MaterialInvestigado(int id)
     {
         // Si el jugador descubre algo nuevo:
         ActualizarEstado(id, 1); // desbloquea info básica
@@ -126,5 +129,12 @@ public class InfoDatosAlmacen : MonoBehaviour
         PlayerPrefs.DeleteKey("DatosLibelulas");
         ListaEstados = ProcesarDatos(datoRecibido);
         AplicarEstadosAUI(ListaEstados);
+    }
+    int a = 0;
+    public void temporalCrecimiento() 
+    {
+        
+        MaterialInvestigado(a);
+        a++;
     }
 }
