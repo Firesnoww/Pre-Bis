@@ -8,9 +8,10 @@ public class SeguirRutaSuavemente : MonoBehaviour
     public float velocidad = 5f;
     public bool loop = true;
 
-    [Range(0f, 5f)]
+    [Range(0f, 2f)]
     public float tension = 0.5f; // 0 = recto, 0.5 = estándar, 1 = muy curvo
-
+    [Range(0f, 1f)]
+    public float relentizacionVel;
     private List<Vector3> puntosRuta = new List<Vector3>();
     private float progreso = 0f;
 
@@ -68,7 +69,7 @@ public class SeguirRutaSuavemente : MonoBehaviour
         float velocidadActual = velocidadInterpolada;
         if (ralentizado)
         {
-            velocidadActual *= 0.2f; // Por ejemplo, reducir al 20% de la velocidad original
+            velocidadActual *= relentizacionVel; // Por ejemplo, reducir al 20% de la velocidad original
             tiempoRalentizado -= Time.deltaTime;
             if (tiempoRalentizado <= 0f)
             {

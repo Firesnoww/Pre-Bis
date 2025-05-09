@@ -122,6 +122,7 @@ using UnityEngine;
         for (int i = 0; i < Mathf.Min(indices.Count, marcadoresPool.Length); i++)
         {
             int puntoIndex = Mathf.Clamp(indices[i] +1, 0, puntosRuta.Length - 1);
+            
 
             if (puntosRuta[puntoIndex] != null)
             {
