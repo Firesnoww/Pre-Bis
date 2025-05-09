@@ -12,26 +12,32 @@ public class SeguirRutaSuavemente : MonoBehaviour
     public float tension = 0.5f; // 0 = recto, 0.5 = estándar, 1 = muy curvo
 
     private List<Vector3> puntosRuta = new List<Vector3>();
-    private float distanciaTotal;
     private float progreso = 0f;
+
+    private RutaVisual rutaVisual;
+
+    private bool ralentizado = false;
+    private float duracionRalentizacion = 1f;
+    private float tiempoRalentizado = 0f;
+
+    private int ultimoPuntoCapturaIndex = -1;
 
     void Start()
     {
+        rutaVisual = ruta.GetComponent<RutaVisual>();
+
         puntosRuta.Clear();
         for (int i = 0; i < ruta.positionCount; i++)
         {
             puntosRuta.Add(ruta.GetPosition(i));
         }
 
-        if (loop)
+        if (loop && puntosRuta.Count >= 3)
         {
-            // Agrega los primeros puntos al final para suavizar el cierre
             puntosRuta.Add(puntosRuta[0]);
             puntosRuta.Add(puntosRuta[1]);
             puntosRuta.Add(puntosRuta[2]);
         }
-
-        distanciaTotal = puntosRuta.Count;
     }
 
     void Update()
@@ -42,7 +48,6 @@ public class SeguirRutaSuavemente : MonoBehaviour
             puntosRuta.Add(ruta.GetPosition(ei));
         }
 
-        // Si hay loop, reañadir los extras
         if (loop && ruta.positionCount >= 3)
         {
             puntosRuta.Add(puntosRuta[0]);
@@ -52,8 +57,28 @@ public class SeguirRutaSuavemente : MonoBehaviour
 
         if (puntosRuta.Count < 4) return;
 
-        // Avanza por la curva con velocidad constante
-        progreso += Time.deltaTime * velocidad;
+        int b = Mathf.FloorToInt(progreso);
+        float c = progreso - b;
+
+        float mod1 = rutaVisual != null && b < rutaVisual.modificadoresVelocidad.Length ? rutaVisual.modificadoresVelocidad[b] : 1f;
+        float mod2 = rutaVisual != null && b + 1 < rutaVisual.modificadoresVelocidad.Length ? rutaVisual.modificadoresVelocidad[b + 1] : 1f;
+        float velocidadInterpolada = Mathf.Lerp(mod1, mod2, c);
+
+        // Aplicar ralentización temporal si está activo
+        float velocidadActual = velocidadInterpolada;
+        if (ralentizado)
+        {
+            velocidadActual *= 0.2f; // Por ejemplo, reducir al 20% de la velocidad original
+            tiempoRalentizado -= Time.deltaTime;
+            if (tiempoRalentizado <= 0f)
+            {
+                ralentizado = false;
+                tiempoRalentizado = 0f;
+            }
+        }
+
+        progreso += Time.deltaTime * velocidad * velocidadActual;
+
         if (progreso >= puntosRuta.Count - 3)
         {
             if (loop)
@@ -62,14 +87,12 @@ public class SeguirRutaSuavemente : MonoBehaviour
                 progreso = puntosRuta.Count - 3 - 0.001f;
         }
 
-        // Obtener posición en la curva
         int i = Mathf.FloorToInt(progreso);
         float t = progreso - i;
 
         Vector3 pos = CatmullRom(puntosRuta[i], puntosRuta[i + 1], puntosRuta[i + 2], puntosRuta[i + 3], t);
         transform.position = pos;
 
-        // Rotación suave hacia el siguiente punto
         Vector3 nextPos = CatmullRom(puntosRuta[i], puntosRuta[i + 1], puntosRuta[i + 2], puntosRuta[i + 3], t + 0.01f);
         Vector3 dir = (nextPos - pos).normalized;
         if (dir != Vector3.zero)
@@ -78,19 +101,24 @@ public class SeguirRutaSuavemente : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
         }
 
-        
+        // Revisar si estamos sobre un punto de captura
+        if (rutaVisual != null && rutaVisual.puntosCaptura.Contains(i) && i != ultimoPuntoCapturaIndex)
+        {
+            // Activar ralentización
+            ralentizado = true;
+            tiempoRalentizado = duracionRalentizacion;
+            ultimoPuntoCapturaIndex = i;
+        }
     }
 
-    // Catmull-Rom interpolation
     Vector3 CatmullRom(Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3, float t)
     {
-        // Usa una fórmula con tensión variable: 0.5 = estándar Catmull-Rom
         float t0 = 0f;
         float t1 = GetT(t0, p0, p1);
         float t2 = GetT(t1, p1, p2);
         float t3 = GetT(t2, p2, p3);
 
-        t = Mathf.Lerp(t1, t2, t); // Interpola entre t1 y t2
+        t = Mathf.Lerp(t1, t2, t);
 
         Vector3 A1 = (t1 - t) / (t1 - t0) * p0 + (t - t0) / (t1 - t0) * p1;
         Vector3 A2 = (t2 - t) / (t2 - t1) * p1 + (t - t1) / (t2 - t1) * p2;
@@ -106,7 +134,6 @@ public class SeguirRutaSuavemente : MonoBehaviour
 
     float GetT(float t, Vector3 p0, Vector3 p1)
     {
-        // alpha controla la curvatura: 0 = uniforme (recto), 0.5 = Catmull-Rom, 1 = centrípeta (más curvo)
         float a = tension;
         return t + Mathf.Pow(Vector3.Distance(p0, p1), a);
     }
