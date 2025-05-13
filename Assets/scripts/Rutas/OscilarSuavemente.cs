@@ -36,4 +36,6 @@ public class OscilarSuavemente : MonoBehaviour
         float desplazamientoY = Mathf.Sin(Time.time * velocidad + offsetFase) * amplitud;
         transform.position = posicionBase + Vector3.up * desplazamientoY;
     }
+
 }
+
