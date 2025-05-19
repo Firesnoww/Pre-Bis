@@ -10393,10 +10393,10 @@ VisualEffect:
       - m_Value: -90
         m_Name: Rotacion
         m_Overridden: 1
-      - m_Value: 0.2
+      - m_Value: 0.4
         m_Name: Lifetime
         m_Overridden: 1
-      - m_Value: 10
+      - m_Value: 30
         m_Name: Veclodiad Giro
         m_Overridden: 1
     m_Vector2f:
@@ -10405,13 +10405,13 @@ VisualEffect:
       m_Array: []
     m_Vector4f:
       m_Array:
-      - m_Value: {x: 0.12769765, y: 0.08012577, z: 2.4266648, w: 1}
+      - m_Value: {x: 2.6415095, y: 1.4036597, z: 0.08721971, w: 1}
         m_Name: Color 2
         m_Overridden: 1
-      - m_Value: {x: 0.042719822, y: 0, z: 0.0754717, w: 1}
+      - m_Value: {x: 0.18867922, y: 0.038320273, z: 0.008009964, w: 1}
         m_Name: Color 3
         m_Overridden: 1
-      - m_Value: {x: 128.03065, y: 91.20519, z: 0, w: 1}
+      - m_Value: {x: 31.60946, y: 0.62549406, z: 0, w: 1}
         m_Name: Color 1
         m_Overridden: 1
     m_Uint:

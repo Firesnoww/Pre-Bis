@@ -25,10 +25,10 @@ MonoBehaviour:
     collapsed: 0
   uiBounds:
     serializedVersion: 2
-    x: -621
+    x: -642
     y: -1590
-    width: 3792
-    height: 6030
+    width: 3813
+    height: 6032
 --- !u!114 &114350483966674976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1727,7 +1727,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -283, y: -691}
+  m_UIPosition: {x: -335, y: -642}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1854,7 +1854,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -621, y: -542}
+  m_UIPosition: {x: -642, y: -518}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -6299,7 +6299,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614864}
   m_ExposedName: Rotacion
   m_Exposed: 1
-  m_Order: 1
+  m_Order: 4
   m_Category: General
   m_Min:
     m_Type:
@@ -6651,7 +6651,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614927}
   m_ExposedName: Color 2
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Category: Color 2
   m_Min:
     m_Type:
@@ -6875,7 +6875,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614933}
   m_ExposedName: Color 3
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 2
   m_Category: Color 3
   m_Min:
     m_Type:
@@ -9841,7 +9841,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 852, y: 1008}
+  m_UIPosition: {x: 878, y: 1085}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -15709,7 +15709,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615463}
   m_ExposedName: Lifetime
   m_Exposed: 1
-  m_Order: 2
+  m_Order: 5
   m_Category: General
   m_Min:
     m_Type:
@@ -16365,7 +16365,7 @@ MonoBehaviour:
   - {fileID: 8926484042661615525}
   m_ExposedName: Veclodiad Giro
   m_Exposed: 1
-  m_Order: 0
+  m_Order: 3
   m_Category: General
   m_Min:
     m_Type:
