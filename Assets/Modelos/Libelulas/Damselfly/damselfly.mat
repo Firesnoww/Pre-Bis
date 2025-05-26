@@ -77,8 +77,20 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_56fd66b554e145f78a647a26b246ba18_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 9086e00bbbdd60d4f81af28e759d2bbd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_acd52c964f9146bf803a36f501853e75_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 9086e00bbbdd60d4f81af28e759d2bbd, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_e210c25909da42d59bb702e23cbcb96b_Texture_1_Texture2D:
         m_Texture: {fileID: 2800000, guid: a683a470b56b15a45ae415c7f479c303, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SampleTexture2D_feb7ba8fd5564322899e51a605f20df5_Texture_1_Texture2D:
+        m_Texture: {fileID: 2800000, guid: 99b2bb17490f4214caa33dcef2685f0f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SpecGlossMap:
@@ -116,7 +128,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Horizontal: 0.5
+    - _Horizontal: 1
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
@@ -136,14 +148,21 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.9063317, g: 0.9063317, b: 0.9063317, a: 1}
+    - _Base_1: {r: -0.5, g: 0.5, b: 0, a: 0}
+    - _Base_1_1: {r: 0, g: 1, b: 0, a: 0}
     - _Color: {r: 0.9063317, g: 0.9063317, b: 0.9063317, a: 1}
     - _Color_Base: {r: 0.3584906, g: 0.07271271, b: 0.07271271, a: 0}
-    - _Color_Base_Inf: {r: 1, g: 1, b: 1, a: 1}
-    - _Color_Base_Sup: {r: 0.9811321, g: 0.96724814, b: 0.96724814, a: 1}
+    - _Color_Base_Inf: {r: 0, g: 0, b: 0, a: 1}
+    - _Color_Base_Sup: {r: 0, g: 1, b: 0.09019613, a: 1}
     - _Color_Inf: {r: 0, g: 1, b: 0.89932394, a: 1}
     - _Color_Patron: {r: 0.8018868, g: 0.609356, b: 0.23829654, a: 0}
     - _Color_Patron_Inf: {r: 0, g: 0, b: 0, a: 1}
-    - _Color_Patron_Sup: {r: 0, g: 0, b: 0, a: 1}
+    - _Color_Patron_Sup: {r: 0, g: 0.046034098, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
+    - _Rango_Base: {r: -2.92, g: 7.82, b: 0, a: 0}
+    - _Rango_Patron: {r: -1.37, g: 4.56, b: 0, a: 0}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
+    - _Vector2: {r: -2.35, g: 7.31, b: 0, a: 0}
+    - _patron_1: {r: 0.1, g: 0.73, b: 0, a: 0}
+    - _patron_1_1: {r: 0.92, g: 3.95, b: 0, a: 0}
   m_BuildTextureStacks: []
