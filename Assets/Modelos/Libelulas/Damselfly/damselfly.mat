@@ -152,12 +152,12 @@ Material:
     - _Base_1_1: {r: 0, g: 1, b: 0, a: 0}
     - _Color: {r: 0.9063317, g: 0.9063317, b: 0.9063317, a: 1}
     - _Color_Base: {r: 0.3584906, g: 0.07271271, b: 0.07271271, a: 0}
-    - _Color_Base_Inf: {r: 0, g: 0, b: 0, a: 1}
-    - _Color_Base_Sup: {r: 0, g: 1, b: 0.09019613, a: 1}
+    - _Color_Base_Inf: {r: 1, g: 0, b: 0, a: 1}
+    - _Color_Base_Sup: {r: 0, g: 0, b: 0, a: 1}
     - _Color_Inf: {r: 0, g: 1, b: 0.89932394, a: 1}
     - _Color_Patron: {r: 0.8018868, g: 0.609356, b: 0.23829654, a: 0}
-    - _Color_Patron_Inf: {r: 0, g: 0, b: 0, a: 1}
-    - _Color_Patron_Sup: {r: 0, g: 0.046034098, b: 1, a: 1}
+    - _Color_Patron_Inf: {r: 1, g: 1, b: 1, a: 1}
+    - _Color_Patron_Sup: {r: 0.029191881, g: 0.034921337, b: 0.1509434, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}
     - _Rango_Base: {r: -2.92, g: 7.82, b: 0, a: 0}
     - _Rango_Patron: {r: -1.37, g: 4.56, b: 0, a: 0}
