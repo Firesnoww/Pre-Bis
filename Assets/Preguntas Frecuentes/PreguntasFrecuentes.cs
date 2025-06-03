@@ -9,6 +9,7 @@ public class PreguntasFrecuentes : MonoBehaviour
     public GameObject botonPrefab; // Prefab del botón (debe tener un TMP_Text como hijo)
     public Transform contenedorBotones; // Panel donde se instancian los botones
     public TMP_Text textoRespuesta; // Campo de texto fijo para mostrar la respuesta
+    public LinkExtractor linke;
 
     [System.Serializable]
     public class PreguntaRespuesta
@@ -74,7 +75,9 @@ public class PreguntasFrecuentes : MonoBehaviour
                 boton.onClick.AddListener(() =>
                 {
                     textoRespuesta.text = respuesta;
+                    linke.CrearEnlaces(respuesta);
                 });
+                
             }
         }
     }
