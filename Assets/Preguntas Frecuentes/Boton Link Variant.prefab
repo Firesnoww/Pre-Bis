@@ -43,6 +43,11 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
       value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
+    - target: {fileID: 2510262105583771918, guid: 646809e5abf0e5b429f9b5a245be0b2d,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: fde01d48535d87f43b246437e4e29305, type: 2}
     - target: {fileID: 3285948417495124136, guid: 646809e5abf0e5b429f9b5a245be0b2d,
         type: 3}
       propertyPath: m_text
@@ -91,7 +96,7 @@ PrefabInstance:
     - target: {fileID: 4021903262317107837, guid: 646809e5abf0e5b429f9b5a245be0b2d,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 213.1986
+      value: 124.125
       objectReference: {fileID: 0}
     - target: {fileID: 4021903262317107837, guid: 646809e5abf0e5b429f9b5a245be0b2d,
         type: 3}
