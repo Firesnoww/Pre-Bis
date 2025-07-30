@@ -9,6 +9,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: roca
     second: {fileID: 2100000, guid: e860d4f31bd394e49b0c77580c106f10, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: roca.001
+    second: {fileID: 2100000, guid: e860d4f31bd394e49b0c77580c106f10, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

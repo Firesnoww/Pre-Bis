@@ -26,7 +26,7 @@ public class PreguntasFrecuentes : MonoBehaviour
         InstanciarBotones();
 
     }
-
+    //<color=#50DCEF>   "texto"     </color>
     void CargarDatos()
     {
         if (csv == null)

@@ -114,7 +114,7 @@ Material:
     - _AlphaClip: 1
     - _AlphaToMask: 1
     - _Alpha_Clip: -0.69
-    - _Ambient_Oclusion: 3.29
+    - _Ambient_Oclusion: 0.49
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 1
@@ -132,7 +132,7 @@ Material:
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
-    - _Intecidad: -0.96
+    - _Intecidad: -2.66
     - _Intencidad_Emisivo: 0
     - _Metallic: 0
     - _Mode: 0
@@ -154,7 +154,7 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 0.39730853, g: 0.5754717, b: 0.25787646, a: 1}
-    - _Color: {r: 0.38951957, g: 0.41509432, b: 0.3700605, a: 1}
+    - _Color: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
     - _Color_Emisivo: {r: 0, g: 0, b: 0, a: 0}
     - _Direccion: {r: 0.3, g: 0.3, b: 0, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 0}

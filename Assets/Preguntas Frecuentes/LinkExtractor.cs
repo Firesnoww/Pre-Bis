@@ -51,6 +51,11 @@ public class LinkExtractor : MonoBehaviour
     {
         List<string> foundLinks = ExtractLinks(texto);
 
+        for (int i = 0; i < foundLinks.Count; i++)
+        {   
+            texto = texto.Replace(foundLinks[i], "<color=#50DCEF>"+ foundLinks[i]+ "</color>"); 
+        }
+
         txtVisual.text = texto;
 
         for (int i = 0; i < botonesEnlaces.Count; i++)
