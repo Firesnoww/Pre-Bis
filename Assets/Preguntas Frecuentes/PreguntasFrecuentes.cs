@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
+using UnityEngine.Networking;
 using TMPro; // Dependencia para usar TextMeshPro
 
 public class PreguntasFrecuentes : MonoBehaviour
 {
     public TextAsset csv; // Archivo con las preguntas y respuestas
-    public GameObject botonPrefab; // Prefab del botón (debe tener un TMP_Text como hijo)
+    public GameObject botonPrefab; // Prefab del botï¿½n (debe tener un TMP_Text como hijo)
     public Transform contenedorBotones; // Panel donde se instancian los botones
     public TMP_Text textoRespuesta; // Campo de texto fijo para mostrar la respuesta
     public LinkExtractor linke;
@@ -22,11 +24,49 @@ public class PreguntasFrecuentes : MonoBehaviour
 
     void Start()
     {
-        CargarDatos();
-        InstanciarBotones();
+        //CargarDatos();
+        StartCoroutine(LlamadoBase());
+        //InstanciarBotones();
 
     }
     //<color=#50DCEF>   "texto"     </color>
+
+    IEnumerator LlamadoBase()
+    {
+
+        UnityWebRequest www = UnityWebRequest.Get("https://amvi.pascualbravo.edu.co/pfcis/api.php");
+        yield return www.Send();
+
+        if (www.isNetworkError)
+        {
+            Debug.Log(www.error);
+        }
+        else
+        {
+     
+            Debug.Log(www.downloadHandler.text);
+
+            string[] lineas = www.downloadHandler.text.Split("%n%");
+
+            foreach (string linea in lineas)
+            {
+                if (string.IsNullOrWhiteSpace(linea)) continue;
+
+                string[] columnas = linea.Split('|');
+
+                if (columnas.Length >= 2)
+                {
+                    listaQA.Add(new PreguntaRespuesta
+                    {
+                        pregunta = (columnas[0] + ". " + columnas[1]).Trim(),
+                        respuesta = columnas[2].Trim().Replace("%p%", ";")
+                    });
+                }
+                if (string.IsNullOrWhiteSpace(linea)) continue;
+            }
+            InstanciarBotones();
+        }
+    }
     void CargarDatos()
     {
         if (csv == null)
@@ -62,7 +102,7 @@ public class PreguntasFrecuentes : MonoBehaviour
         {
             GameObject nuevoBoton = Instantiate(botonPrefab, contenedorBotones);
 
-            // Buscamos el TMP_Text dentro del botón instanciado (como hijo)
+            // Buscamos el TMP_Text dentro del botï¿½n instanciado (como hijo)
             TMP_Text textoBoton = nuevoBoton.GetComponentInChildren<TMP_Text>();
 
             if (textoBoton != null)
