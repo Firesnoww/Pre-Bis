@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.Networking;
+using System.Text.RegularExpressions;
 using TMPro; // Dependencia para usar TextMeshPro
 
 public class PreguntasFrecuentes : MonoBehaviour
@@ -30,6 +31,23 @@ public class PreguntasFrecuentes : MonoBehaviour
 
     }
     //<color=#50DCEF>   "texto"     </color>
+    /// <summary>
+    /// Elimina caracteres invisibles problemáticos del texto.
+    /// </summary>
+    string LimpiarTexto(string texto)
+    {
+        if (string.IsNullOrEmpty(texto))
+            return texto;
+
+        // Expresión regular para remover:
+        // - Espacios duros (U+00A0)
+        // - Zero-width spaces, non-joiners, etc. (U+200B - U+200F)
+        // - Caracteres de control invisibles (0x00 - 0x1F, 0x7F)
+        // - Otros invisibles como LRM/RLM y direccionales (U+202A - U+202E)
+        string limpio = Regex.Replace(texto, @"[\u0000-\u001F\u007F\u00A0\u00AD\u200B-\u200F\u202A-\u202E]", "\n");
+
+        return limpio;
+    }
 
     IEnumerator LlamadoBase()
     {
@@ -46,7 +64,7 @@ public class PreguntasFrecuentes : MonoBehaviour
      
             Debug.Log(www.downloadHandler.text);
 
-            string[] lineas = www.downloadHandler.text.Split("%n%");
+            string[] lineas = LimpiarTexto(www.downloadHandler.text).Split("%n%");
 
             foreach (string linea in lineas)
             {
