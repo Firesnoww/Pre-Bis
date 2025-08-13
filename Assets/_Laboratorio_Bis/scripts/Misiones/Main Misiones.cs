@@ -25,6 +25,15 @@ public class MainMisiones : MonoBehaviour
     public Misiones[] LineaActual => misiones;
 
     // >>> NUEVO: helper para comparar si es la misma línea por referencia
+
+    // Qué espera la fase actual (en memoria)
+    private string _esperaTipo = "";   // "Captura", "Recoleccion", "Exploracion", "Microscopio", "Inicio", "Resultado"
+    private int _restante = 0;         // cuántos faltan para completar la fase
+
+    // Evento: notificar progreso de la fase actual al UI
+    public event System.Action<int, int, string> OnMissionSubprogress;
+    // firma: (restante, objetivoTotal, tipo)
+
     public bool EsMismaLinea(Misiones[] otraLinea)
     {
         return otraLinea != null && misiones == otraLinea;
@@ -43,9 +52,11 @@ public class MainMisiones : MonoBehaviour
     {
         if (misiones == null || misiones.Length == 0) { Debug.LogWarning("No hay misiones cargadas."); return; }
         lineaActiva = true;
-        // Antes de ejecutar, emite snapshot de la fase 1 (índice 0)
-        EmitirUI(); // <-- NUEVO
+
+        EmitirUI();                // ya lo tenías del parche anterior
+        PrepararObjetivoFaseActual(); // <-- NUEVO (armar objetivo)
         EjecutarMisionActual();
+
         Debug.Log("MainMisiones: intro mostrada. Esperando completar fase 1...");
     }
 
@@ -86,6 +97,7 @@ public class MainMisiones : MonoBehaviour
             Debug.Log($"Descripción general:\n{m.InfoMision}");
             // Importante: emitir (ya se emite fuera) y luego avanzar índice
             misionActual++;
+            PrepararObjetivoFaseActual(); // <-- NUEVO
             return;
         }
 
@@ -104,6 +116,7 @@ public class MainMisiones : MonoBehaviour
             Debug.Log($"Info recolección: {m.InfoRecoleccion}");
             Debug.Log($"Muestras: {m.Muestra.Length}");
             misionActual++;
+            PrepararObjetivoFaseActual(); // <-- NUEVO
             return;
         }
 
@@ -113,6 +126,7 @@ public class MainMisiones : MonoBehaviour
             Debug.Log($"Info exploración: {m.InfoExploracion}");
             Debug.Log($"Zonas a visitar: {m.Lugar.Length}");
             misionActual++;
+            PrepararObjetivoFaseActual(); // <-- NUEVO
             return;
         }
 
@@ -121,6 +135,7 @@ public class MainMisiones : MonoBehaviour
             Debug.Log("[FASE MICROSCOPIO ACTIVADA]");
             Debug.Log($"Info microscopio: {m.InfoMicroscopio}");
             misionActual++;
+            PrepararObjetivoFaseActual(); // <-- NUEVO
             return;
         }
 
@@ -142,6 +157,47 @@ public class MainMisiones : MonoBehaviour
     public void ReportarProgreso(string objetivoId, int delta = 1)
     {
         Debug.Log($"Reporte recibido: {objetivoId} (+{delta}). Completando fase actual.");
+        CompletarFaseActual();
+    }
+
+    public void RegistrarCaptura(int cantidad = 1)
+    {
+        if (_esperaTipo != "Captura" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].CapturasObjetivo), "Captura");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    public void RegistrarRecoleccion(int cantidad = 1)
+    {
+        if (_esperaTipo != "Recoleccion" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].RecoleccionesObjetivo), "Recoleccion");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    public void RegistrarZonaExplorada(int cantidad = 1)
+    {
+        if (_esperaTipo != "Exploracion" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].ZonasObjetivo), "Exploracion");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    public void RegistrarAnalisisMicroscopio(int cantidad = 1)
+    {
+        if (_esperaTipo != "Microscopio" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].AnalisisObjetivo), "Microscopio");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    // Para la fase de Inicio o genérica: puedes “continuar” con un botón
+    public void ContinuarInicio()
+    {
+        if (_esperaTipo != "Inicio" || !lineaActiva) return;
+        _restante = 0;
+        OnMissionSubprogress?.Invoke(0, 1, "Inicio");
         CompletarFaseActual();
     }
 
@@ -226,5 +282,27 @@ public class MainMisiones : MonoBehaviour
         if (string.IsNullOrEmpty(s.ubicacion)) s.ubicacion = "-";
 
         return s;
+    }
+
+    private void PrepararObjetivoFaseActual()
+    {
+        _esperaTipo = "";
+        _restante = 0;
+
+        if (!lineaActiva || misiones == null || misiones.Length == 0) return;
+        if (misionActual < 0 || misionActual >= misiones.Length) return;
+
+        var m = misiones[misionActual];
+
+        if (m.InicioMision) { _esperaTipo = "Inicio"; _restante = 1; }
+        else if (m.EsCaptura) { _esperaTipo = "Captura"; _restante = Mathf.Max(1, m.CapturasObjetivo); }
+        else if (m.EsRecoleccion) { _esperaTipo = "Recoleccion"; _restante = Mathf.Max(1, m.RecoleccionesObjetivo); }
+        else if (m.EsExploracion) { _esperaTipo = "Exploracion"; _restante = Mathf.Max(1, m.ZonasObjetivo); }
+        else if (m.EsMicroscopio) { _esperaTipo = "Microscopio"; _restante = Mathf.Max(1, m.AnalisisObjetivo); }
+        else if (m.EsResultado) { _esperaTipo = "Resultado"; _restante = 1; }
+        else { _esperaTipo = "Fase"; _restante = 1; }
+
+        // Notificar subprogreso inicial (objetivo total = _restante)
+        OnMissionSubprogress?.Invoke(_restante, _restante, _esperaTipo);
     }
 }

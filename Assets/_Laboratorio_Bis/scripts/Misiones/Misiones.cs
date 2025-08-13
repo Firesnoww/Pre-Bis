@@ -6,6 +6,19 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Mision #", menuName = "Scriptable Objs/Mision", order = 1)]
 public class Misiones : ScriptableObject
 {
+    [Header("Captura - objetivo (opcional)")]
+    public int CapturasObjetivo = 1;   // si EsCaptura, ¿cuántas?
+
+    [Header("Recolección - objetivo (opcional)")]
+    public int RecoleccionesObjetivo = 1;  // si EsRecoleccion, ¿cuántas? (p.ej. Muestras)
+
+    [Header("Exploración - objetivo (opcional)")]
+    public int ZonasObjetivo = 1;      // si EsExploracion, ¿cuántas zonas visitar?
+
+    [Header("Microscopio - objetivo (opcional)")]
+    public int AnalisisObjetivo = 1;   // si EsMicroscopio, ¿cuántos análisis?
+
+
     [Header("------------------Datos Mision------------------")]
     public bool InicioMision;
     public AudioClip AuMision;
