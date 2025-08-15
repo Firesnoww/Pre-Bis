@@ -3,12 +3,13 @@ using UnityEngine;
 
 public class CamaraOrbital : MonoBehaviour
 {
+   
     public Transform jugador;             // Transform del personaje a seguir
     public float distancia = 1.76f; // Distancia de la cámara al personaje
     public float altura = 1.0f; // Altura desde el centro del personaje
     public float sensibilidadMouse = 7.0f; // Sensibilidad al mover el mouse
     public float anguloMin = -20f; // Límite inferior del ángulo vertical
-    public float anguloMax = 120f; // Límite superior del ángulo vertical
+    public float anguloMax = 80f; // Límite superior del ángulo vertical
     public bool detenerRotacion; // Para controlar si rota o no
     public bool bloquearMouse; // Para bloquear el mouse en la mitad de la pantalla
     public bool mouseInvisible; // para ocultar el mouse
