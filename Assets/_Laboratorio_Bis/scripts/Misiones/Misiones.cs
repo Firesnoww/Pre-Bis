@@ -1,24 +1,16 @@
-using System.Collections;
+锘縰sing System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
+//
+// Misiones
+// ScriptableObject que describe UNA fase de misi贸n.
+// Usa flags para activar el tipo de fase (Inicio/Captura/Recolecci贸n/Exploraci贸n/Microscopio/Resultado).
+// Se puede usar como "intro" (InicioMision) o una fase jugable concreta.
+//
 [CreateAssetMenu(fileName = "Mision #", menuName = "Scriptable Objs/Mision", order = 1)]
 public class Misiones : ScriptableObject
 {
-    [Header("Captura - objetivo (opcional)")]
-    public int CapturasObjetivo = 1;   // si EsCaptura, 縞u醤tas?
-
-    [Header("Recolecci髇 - objetivo (opcional)")]
-    public int RecoleccionesObjetivo = 1;  // si EsRecoleccion, 縞u醤tas? (p.ej. Muestras)
-
-    [Header("Exploraci髇 - objetivo (opcional)")]
-    public int ZonasObjetivo = 1;      // si EsExploracion, 縞u醤tas zonas visitar?
-
-    [Header("Microscopio - objetivo (opcional)")]
-    public int AnalisisObjetivo = 1;   // si EsMicroscopio, 縞u醤tos an醠isis?
-
-
     [Header("------------------Datos Mision------------------")]
     public bool InicioMision;
     public AudioClip AuMision;
@@ -53,7 +45,7 @@ public class Misiones : ScriptableObject
     [Header("---------------MICROSCOPIO---------------")]
     public bool EsMicroscopio;
     public AudioClip AuMicroscopio;
-    [Multiline(4)] 
+    [Multiline(4)]
     public string InfoMicroscopio;
 
     [Header("-------------RESULTADO_FINAL---------------")]
@@ -63,4 +55,22 @@ public class Misiones : ScriptableObject
     public string InfoFinal;
     public int InfoDesbloqueada;
 
+    // --------------------- NUEVO: Contadores sencillos por fase ---------------------
+    // Si no rellenas estos campos, se asume 1 como objetivo por defecto.
+    [Header("Objetivos simples (opcionales)")]
+    public int CapturasObjetivo = 1;        // Para EsCaptura
+    public int RecoleccionesObjetivo = 1;   // Para EsRecoleccion
+    public int ZonasObjetivo = 1;           // Para EsExploracion
+    public int AnalisisObjetivo = 1;        // Para EsMicroscopio
+
+    // --------------------- NUEVO: Objetivos multi鈥懨璽em (opcionales) ---------------------
+    // 脷salos si necesitas "1 Flor + 1 Hoja + 1 Ala" (IDs y cantidades).
+    // Si est谩n vac铆os o desparejos, se ignoran y se usa el contador simple.
+    [Header("Recolecci贸n avanzada (por ID, opcional)")]
+    public string[] RecoleccionIDs;   // IDs requeridos (p.ej. "Flor","Hoja","Ala")
+    public int[] RecoleccionCant;  // Cantidades por ID (mismo largo que RecoleccionIDs)
+
+    [Header("Captura avanzada (por ID, opcional)")]
+    public string[] CapturaIDs;       // IDs de especies/variantes a capturar
+    public int[] CapturaCant;      // Cantidades por ID (mismo largo que CapturaIDs)
 }

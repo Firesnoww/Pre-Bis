@@ -38,3 +38,13 @@ MonoBehaviour:
   AuFinal: {fileID: 0}
   InfoFinal: 
   InfoDesbloqueada: 0
+  CapturasObjetivo: 1
+  RecoleccionesObjetivo: 1
+  ZonasObjetivo: 1
+  AnalisisObjetivo: 1
+  RecoleccionIDs:
+  - Flores
+  - peces
+  RecoleccionCant: 0500000003000000
+  CapturaIDs: []
+  CapturaCant: 

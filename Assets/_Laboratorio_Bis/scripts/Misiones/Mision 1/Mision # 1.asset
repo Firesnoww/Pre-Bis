@@ -13,22 +13,36 @@ MonoBehaviour:
   m_Name: Mision # 1
   m_EditorClassIdentifier: 
   InicioMision: 1
+  AuMision: {fileID: 0}
   NombreMision: 'Incio prueba '
-  InfoMision: 'esta es la pruab no mms de la mision misionosa '
-  Dificultad: 0
+  InfoMision: Esta es la mision # 1
+  Dificultad: 1
   EsCaptura: 0
+  AuLibelulas: {fileID: 0}
   InfoCaptura: 
   LibelulaLow: []
   LibelulaHigt: []
   EsRecoleccion: 0
+  AuRecoleccion: {fileID: 0}
   InfoRecoleccion: 
   Muestra: []
   Cantidad: []
   EsExploracion: 0
+  AuExploracion: {fileID: 0}
   InfoExploracion: 
   Lugar: []
   EsMicroscopio: 0
+  AuMicroscopio: {fileID: 0}
   InfoMicroscopio: 
   EsResultado: 0
+  AuFinal: {fileID: 0}
   InfoFinal: 
   InfoDesbloqueada: 0
+  CapturasObjetivo: 1
+  RecoleccionesObjetivo: 1
+  ZonasObjetivo: 1
+  AnalisisObjetivo: 1
+  RecoleccionIDs: []
+  RecoleccionCant: 
+  CapturaIDs: []
+  CapturaCant: 

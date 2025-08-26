@@ -1,205 +1,163 @@
+Ôªøusing System;
+using System.Collections.Generic; // para Dictionary en multi‚Äë√≠tem
 using UnityEngine;
-using System;
 
-
+//
+// MainMisiones
+// N√∫cleo que ejecuta l√≠neas de misi√≥n (Misiones[]) de forma lineal.
+// - CargarLinea(linea): establece una nueva l√≠nea (no activa).
+// - ComenzarLinea(): activa la l√≠nea y posiciona en la fase 0.
+// - CompletarFaseActual(): avanza a la siguiente fase.
+// - AbortarLineaActual(): cancela la l√≠nea activa (limpia progreso).
+//
+// Eventos para UI:
+//   - OnMissionUI(MissionSnapshot): snapshot de estado actual (para Canvas).
+//   - OnMissionSubprogress(restante, objetivo, tipo): sub‚Äëprogreso de la fase.
+//
+// APIs para gameplay:
+//   RegistrarCaptura(...), RegistrarRecoleccion(...), RegistrarZonaExplorada(...),
+//   RegistrarAnalisisMicroscopio(...), ContinuarInicio()
+//
 public class MainMisiones : MonoBehaviour
 {
-    [Serializable]
-    public class MissionSnapshot
-    {
-        public bool activa;            // øhay una lÌnea activa?
-        public string nombre;          // Nombre de la misiÛn/fase actual (si aplica)
-        public string descripcion;     // DescripciÛn/Info de la fase
-        public int faseIndex;          // Õndice de fase actual (1-based para UI)
-        public int fasesTotal;         // Total de fases en la lÌnea
-        public string tipo;            // "Inicio", "Captura", "RecolecciÛn", "ExploraciÛn", "Microscopio", "Resultado"
-        public string ubicacion;       // Si hay lugares (ExploraciÛn), un texto breve
-    }
+    // ===================== Configuraci√≥n de comportamiento =====================
+    [Header("Comportamiento")]
+    [Tooltip("Si la primera fase es 'InicioMision', al comenzar se avanza autom√°ticamente a la primera TAREA.")]
+    public bool AutoSaltarInicioAlAceptar = true;
+
+    // L√≠nea y estado
+    [Header("Estado runtime")]
     public Misiones[] misiones;
     public int misionActual = 0;
     private bool lineaActiva = false;
-    public event Action<MissionSnapshot> OnMissionUI;
+
     public bool HayLineaActiva => lineaActiva;
 
-    // >>> NUEVO: exposiciÛn segura de la referencia actual
+    // Acceso de solo lectura para comparar referencia en Asignador
     public Misiones[] LineaActual => misiones;
 
-    // >>> NUEVO: helper para comparar si es la misma lÌnea por referencia
-
-    // QuÈ espera la fase actual (en memoria)
-    private string _esperaTipo = "";   // "Captura", "Recoleccion", "Exploracion", "Microscopio", "Inicio", "Resultado"
-    private int _restante = 0;         // cu·ntos faltan para completar la fase
-
-    // Evento: notificar progreso de la fase actual al UI
-    public event System.Action<int, int, string> OnMissionSubprogress;
-    // firma: (restante, objetivoTotal, tipo)
-
+    // Helper para saber si una l√≠nea (array) es la misma referencia
     public bool EsMismaLinea(Misiones[] otraLinea)
     {
         return otraLinea != null && misiones == otraLinea;
     }
 
+    // ===================== EVENTOS PARA UI =====================
+
+    [Serializable]
+    public class MissionSnapshot
+    {
+        public bool activa;       // ¬øhay misi√≥n activa?
+        public string nombre;     // Nombre de la fase/misi√≥n actual
+        public string descripcion;// Descripci√≥n/Info
+        public int faseIndex;     // 1-based
+        public int fasesTotal;    // total en la l√≠nea
+        public string tipo;       // "Inicio", "Captura", "Recolecci√≥n", "Exploraci√≥n", "Microscopio", "Resultado"
+        public string ubicacion;  // texto simple (ej. primer "Lugar" si aplica)
+    }
+
+    // Emite snapshot para el Canvas
+    public event Action<MissionSnapshot> OnMissionUI;
+
+    // Sub‚Äëprogreso de la fase actual: (restante, objetivo, tipo)
+    public event Action<int, int, string> OnMissionSubprogress;
+
+    // ===================== RUNTIME DE FASE =====================
+
+    // Qu√© ‚Äútipo‚Äù espera la fase (para validar reportes)
+    private string _esperaTipo = "";  // "Inicio","Captura","Recoleccion","Exploracion","Microscopio","Resultado","Fase"
+
+    // Modo simple (total sin distinguir item)
+    private int _restante = 0;
+
+    // Modo multi‚Äë√≠tem (por ID)
+    private Dictionary<string, int> _pendientesPorId = null;
+    private int _totalObjetivoActual = 0;  // suma de todos los √≠tems
+    private int _totalRestanteActual = 0;  // suma restante (para UI)
+
+    // ===================== API PRINCIPAL =====================
+
+    /// <summary>
+    /// Carga una l√≠nea (array de 'Misiones') pero NO la activa.
+    /// </summary>
     public void CargarLinea(Misiones[] linea)
     {
         misiones = linea;
         misionActual = 0;
         lineaActiva = false;
-        Debug.Log("MainMisiones: lÌnea cargada. Lista para comenzar.");
-        EmitirUI(); // <-- NUEVO: para que el UI muestre "lista pero no iniciada"
+        Debug.Log("MainMisiones: l√≠nea cargada. Lista para comenzar.");
+        EmitirUI(); // UI puede mostrar "lista pero no iniciada"
     }
 
+    /// <summary>
+    /// Activa la l√≠nea y posiciona en la fase 0.
+    /// Si 'AutoSaltarInicioAlAceptar' est√° activo y la fase 0 es 'InicioMision',
+    /// se avanza autom√°ticamente a la primera TAREA.
+    /// </summary>
     public void ComenzarLinea()
     {
         if (misiones == null || misiones.Length == 0) { Debug.LogWarning("No hay misiones cargadas."); return; }
         lineaActiva = true;
 
-        EmitirUI();                // ya lo tenÌas del parche anterior
-        PrepararObjetivoFaseActual(); // <-- NUEVO (armar objetivo)
+        // 1) Snapshot inicial (fase 0)
+        EmitirUI();
+
+        // 2) Preparar lo que espera la fase 0
+        PrepararObjetivoFaseActual();
+
+        // 3) Ejecuta la fase (logs/activaciones)
         EjecutarMisionActual();
 
-        Debug.Log("MainMisiones: intro mostrada. Esperando completar fase 1...");
+        // 4) Si la fase 0 es de 'Inicio' y queremos auto-saltar, avanzar de inmediato.
+        if (AutoSaltarInicioAlAceptar && _esperaTipo == "Inicio")
+        {
+            // Opci√≥n A: avanzar "limpiamente" usando la API existente (queda todo consistente)
+            ContinuarInicio(); // esto llama internamente a CompletarFaseActual()
+
+            // Nota: si prefieres mostrar la info 1 frame antes de saltar,
+            // podr√≠as hacerlo en un coroutine con un peque√±o delay.
+        }
+
+        Debug.Log("MainMisiones: l√≠nea comenzada.");
     }
 
+    /// <summary>
+    /// Cancela la l√≠nea activa (limpia progreso). Queda retomable cargando/aceptando de nuevo.
+    /// </summary>
     public void AbortarLineaActual()
     {
         if (!lineaActiva) return;
-        Debug.Log("MainMisiones: abortando lÌnea activa. Se perder· el progreso.");
+        Debug.Log("MainMisiones: abortando l√≠nea activa. Se perder√° el progreso.");
         lineaActiva = false;
         misiones = null;
         misionActual = 0;
-        EmitirUI(); // <-- NUEVO: UI pasa a "Sin misiÛn activa"
+
+        // Limpia runtime
+        _esperaTipo = "";
+        _restante = 0;
+        _pendientesPorId = null;
+        _totalObjetivoActual = 0;
+        _totalRestanteActual = 0;
+
+        EmitirUI(); // Canvas: "Sin misi√≥n activa"
     }
 
+    /// <summary>
+    /// Avanza la fase actual (se invoca cuando la fase cumple su objetivo).
+    /// </summary>
     public void CompletarFaseActual()
     {
-        if (!lineaActiva) { Debug.LogWarning("No hay lÌnea activa."); return; }
+        if (!lineaActiva) { Debug.LogWarning("No hay l√≠nea activa."); return; }
+
+        // Avanza √≠ndice y re‚Äëprepara siguiente fase
+        misionActual++;
+        PrepararObjetivoFaseActual();
+
+        EmitirUI(); // Refresca UI tras el avance
         EjecutarMisionActual();
-        EmitirUI(); // <-- NUEVO: tras avanzar, refrescar UI
     }
 
-    void EjecutarMisionActual()
-    {
-        if (misiones == null || misiones.Length == 0) return;
-        if (misionActual < 0 || misionActual >= misiones.Length)
-        {
-            Debug.Log("LÌnea completada.");
-            lineaActiva = false;
-            EmitirUI(); // <-- NUEVO: refleja finalizaciÛn
-            return;
-        }
-
-        Misiones m = misiones[misionActual];
-
-        if (m.InicioMision)
-        {
-            Debug.Log($"--- MisiÛn: {m.NombreMision} ---");
-            Debug.Log($"Dificultad: {m.Dificultad}");
-            Debug.Log($"DescripciÛn general:\n{m.InfoMision}");
-            // Importante: emitir (ya se emite fuera) y luego avanzar Ìndice
-            misionActual++;
-            PrepararObjetivoFaseActual(); // <-- NUEVO
-            return;
-        }
-
-        if (m.EsCaptura)
-        {
-            Debug.Log("[FASE CAPTURA ACTIVADA]");
-            Debug.Log($"Info captura: {m.InfoCaptura}");
-            Debug.Log($"LibÈlulas Low: {m.LibelulaLow.Length} | High: {m.LibelulaHigt.Length}");
-            misionActual++;
-            return;
-        }
-
-        if (m.EsRecoleccion)
-        {
-            Debug.Log("[FASE RECOLECCI”N ACTIVADA]");
-            Debug.Log($"Info recolecciÛn: {m.InfoRecoleccion}");
-            Debug.Log($"Muestras: {m.Muestra.Length}");
-            misionActual++;
-            PrepararObjetivoFaseActual(); // <-- NUEVO
-            return;
-        }
-
-        if (m.EsExploracion)
-        {
-            Debug.Log("[FASE EXPLORACI”N ACTIVADA]");
-            Debug.Log($"Info exploraciÛn: {m.InfoExploracion}");
-            Debug.Log($"Zonas a visitar: {m.Lugar.Length}");
-            misionActual++;
-            PrepararObjetivoFaseActual(); // <-- NUEVO
-            return;
-        }
-
-        if (m.EsMicroscopio)
-        {
-            Debug.Log("[FASE MICROSCOPIO ACTIVADA]");
-            Debug.Log($"Info microscopio: {m.InfoMicroscopio}");
-            misionActual++;
-            PrepararObjetivoFaseActual(); // <-- NUEVO
-            return;
-        }
-
-        if (m.EsResultado)
-        {
-            Debug.Log("[FASE RESULTADO FINAL ACTIVADA]");
-            Debug.Log($"Info final: {m.InfoFinal}");
-            Debug.Log($"Datos desbloqueados: {m.InfoDesbloqueada}");
-            Debug.Log(">> (BD) Registrar misiÛn completada y desbloquear info.");
-            lineaActiva = false;
-            EmitirUI(); // <-- NUEVO: refleja finalizaciÛn
-            return;
-        }
-
-        Debug.Log("Estado ACTUAL MISION = " + misionActual);
-    }
-
-    // API mÌnima para objetos externos (luego la conectamos a objetivos reales)
-    public void ReportarProgreso(string objetivoId, int delta = 1)
-    {
-        Debug.Log($"Reporte recibido: {objetivoId} (+{delta}). Completando fase actual.");
-        CompletarFaseActual();
-    }
-
-    public void RegistrarCaptura(int cantidad = 1)
-    {
-        if (_esperaTipo != "Captura" || !lineaActiva) return;
-        _restante -= Mathf.Max(1, cantidad);
-        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].CapturasObjetivo), "Captura");
-        if (_restante <= 0) CompletarFaseActual();
-    }
-
-    public void RegistrarRecoleccion(int cantidad = 1)
-    {
-        if (_esperaTipo != "Recoleccion" || !lineaActiva) return;
-        _restante -= Mathf.Max(1, cantidad);
-        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].RecoleccionesObjetivo), "Recoleccion");
-        if (_restante <= 0) CompletarFaseActual();
-    }
-
-    public void RegistrarZonaExplorada(int cantidad = 1)
-    {
-        if (_esperaTipo != "Exploracion" || !lineaActiva) return;
-        _restante -= Mathf.Max(1, cantidad);
-        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].ZonasObjetivo), "Exploracion");
-        if (_restante <= 0) CompletarFaseActual();
-    }
-
-    public void RegistrarAnalisisMicroscopio(int cantidad = 1)
-    {
-        if (_esperaTipo != "Microscopio" || !lineaActiva) return;
-        _restante -= Mathf.Max(1, cantidad);
-        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), Mathf.Max(1, misiones[misionActual].AnalisisObjetivo), "Microscopio");
-        if (_restante <= 0) CompletarFaseActual();
-    }
-
-    // Para la fase de Inicio o genÈrica: puedes ìcontinuarî con un botÛn
-    public void ContinuarInicio()
-    {
-        if (_esperaTipo != "Inicio" || !lineaActiva) return;
-        _restante = 0;
-        OnMissionSubprogress?.Invoke(0, 1, "Inicio");
-        CompletarFaseActual();
-    }
+    // ===================== EJECUCI√ìN/EMISI√ìN =====================
 
     private void EmitirUI()
     {
@@ -214,7 +172,7 @@ public class MainMisiones : MonoBehaviour
 
         if (!lineaActiva || misiones == null || misiones.Length == 0)
         {
-            s.nombre = "Sin misiÛn activa";
+            s.nombre = "Sin misi√≥n activa";
             s.descripcion = "";
             s.faseIndex = 0;
             s.fasesTotal = 0;
@@ -223,14 +181,12 @@ public class MainMisiones : MonoBehaviour
             return s;
         }
 
-        // Proteger Ìndice
         int idx = Mathf.Clamp(misionActual, 0, Mathf.Max(0, misiones.Length - 1));
         Misiones m = misiones[idx];
 
-        s.faseIndex = idx + 1;        // 1-based para UI
+        s.faseIndex = idx + 1;
         s.fasesTotal = misiones.Length;
 
-        // Determinar tipo + campos de texto
         if (m.InicioMision)
         {
             s.tipo = "Inicio";
@@ -245,19 +201,17 @@ public class MainMisiones : MonoBehaviour
         }
         else if (m.EsRecoleccion)
         {
-            s.tipo = "RecolecciÛn";
+            s.tipo = "Recolecci√≥n";
             s.nombre = m.NombreMision;
             s.descripcion = string.IsNullOrEmpty(m.InfoRecoleccion) ? m.InfoMision : m.InfoRecoleccion;
         }
         else if (m.EsExploracion)
         {
-            s.tipo = "ExploraciÛn";
+            s.tipo = "Exploraci√≥n";
             s.nombre = m.NombreMision;
             s.descripcion = string.IsNullOrEmpty(m.InfoExploracion) ? m.InfoMision : m.InfoExploracion;
-
-            // UbicaciÛn amigable si definiste lugares
             if (m.Lugar != null && m.Lugar.Length > 0 && m.Lugar[0] != null)
-                s.ubicacion = m.Lugar[0].name; // puedes mejorar esto luego (p.ej. el m·s cercano al jugador)
+                s.ubicacion = m.Lugar[0].name;
         }
         else if (m.EsMicroscopio)
         {
@@ -278,31 +232,307 @@ public class MainMisiones : MonoBehaviour
             s.descripcion = m.InfoMision;
         }
 
-        // Fallback ubicaciÛn si no es exploraciÛn
         if (string.IsNullOrEmpty(s.ubicacion)) s.ubicacion = "-";
-
         return s;
     }
 
+    /// <summary>
+    /// Define qu√© espera la fase actual (contadores simples o multi‚Äë√≠tem).
+    /// </summary>
     private void PrepararObjetivoFaseActual()
     {
         _esperaTipo = "";
         _restante = 0;
+        _pendientesPorId = null;
+        _totalObjetivoActual = 0;
+        _totalRestanteActual = 0;
 
         if (!lineaActiva || misiones == null || misiones.Length == 0) return;
         if (misionActual < 0 || misionActual >= misiones.Length) return;
 
         var m = misiones[misionActual];
 
-        if (m.InicioMision) { _esperaTipo = "Inicio"; _restante = 1; }
-        else if (m.EsCaptura) { _esperaTipo = "Captura"; _restante = Mathf.Max(1, m.CapturasObjetivo); }
-        else if (m.EsRecoleccion) { _esperaTipo = "Recoleccion"; _restante = Mathf.Max(1, m.RecoleccionesObjetivo); }
-        else if (m.EsExploracion) { _esperaTipo = "Exploracion"; _restante = Mathf.Max(1, m.ZonasObjetivo); }
-        else if (m.EsMicroscopio) { _esperaTipo = "Microscopio"; _restante = Mathf.Max(1, m.AnalisisObjetivo); }
-        else if (m.EsResultado) { _esperaTipo = "Resultado"; _restante = 1; }
-        else { _esperaTipo = "Fase"; _restante = 1; }
+        if (m.InicioMision)
+        {
+            _esperaTipo = "Inicio";
+            _restante = 1;
+            _totalObjetivoActual = _restante;
+            _totalRestanteActual = _restante;
+        }
+        else if (m.EsCaptura)
+        {
+            _esperaTipo = "Captura";
 
-        // Notificar subprogreso inicial (objetivo total = _restante)
-        OnMissionSubprogress?.Invoke(_restante, _restante, _esperaTipo);
+            // Modo avanzado (IDs)
+            if (m.CapturaIDs != null && m.CapturaCant != null &&
+                m.CapturaIDs.Length == m.CapturaCant.Length && m.CapturaIDs.Length > 0)
+            {
+                _pendientesPorId = new Dictionary<string, int>();
+                for (int i = 0; i < m.CapturaIDs.Length; i++)
+                {
+                    int cant = Mathf.Max(1, m.CapturaCant[i]);
+                    if (cant <= 0 || string.IsNullOrEmpty(m.CapturaIDs[i])) continue;
+                    _pendientesPorId[m.CapturaIDs[i]] = cant;
+                    _totalObjetivoActual += cant;
+                }
+                _totalRestanteActual = _totalObjetivoActual;
+            }
+            else
+            {
+                // Modo simple
+                _restante = Mathf.Max(1, m.CapturasObjetivo);
+                _totalObjetivoActual = _restante;
+                _totalRestanteActual = _restante;
+            }
+        }
+        else if (m.EsRecoleccion)
+        {
+            _esperaTipo = "Recoleccion";
+
+            // Modo avanzado (IDs)
+            if (m.RecoleccionIDs != null && m.RecoleccionCant != null &&
+                m.RecoleccionIDs.Length == m.RecoleccionCant.Length && m.RecoleccionIDs.Length > 0)
+            {
+                _pendientesPorId = new Dictionary<string, int>();
+                for (int i = 0; i < m.RecoleccionIDs.Length; i++)
+                {
+                    int cant = Mathf.Max(1, m.RecoleccionCant[i]);
+                    if (cant <= 0 || string.IsNullOrEmpty(m.RecoleccionIDs[i])) continue;
+                    _pendientesPorId[m.RecoleccionIDs[i]] = cant;
+                    _totalObjetivoActual += cant;
+                }
+                _totalRestanteActual = _totalObjetivoActual;
+            }
+            else
+            {
+                // Modo simple
+                _restante = Mathf.Max(1, m.RecoleccionesObjetivo);
+                _totalObjetivoActual = _restante;
+                _totalRestanteActual = _restante;
+            }
+        }
+        else if (m.EsExploracion)
+        {
+            _esperaTipo = "Exploracion";
+            _restante = Mathf.Max(1, m.ZonasObjetivo);
+            _totalObjetivoActual = _restante;
+            _totalRestanteActual = _restante;
+        }
+        else if (m.EsMicroscopio)
+        {
+            _esperaTipo = "Microscopio";
+            _restante = Mathf.Max(1, m.AnalisisObjetivo);
+            _totalObjetivoActual = _restante;
+            _totalRestanteActual = _restante;
+        }
+        else if (m.EsResultado)
+        {
+            _esperaTipo = "Resultado";
+            _restante = 1;
+            _totalObjetivoActual = 1;
+            _totalRestanteActual = 1;
+        }
+        else
+        {
+            _esperaTipo = "Fase";
+            _restante = 1;
+            _totalObjetivoActual = 1;
+            _totalRestanteActual = 1;
+        }
+
+        // Notificar sub‚Äëprogreso inicial
+        OnMissionSubprogress?.Invoke(_totalRestanteActual, _totalObjetivoActual, _esperaTipo);
+    }
+
+    /// <summary>
+    /// Muestra logs/activaciones seg√∫n el tipo de fase.
+    /// </summary>
+    private void EjecutarMisionActual()
+    {
+        if (misiones == null || misiones.Length == 0) return;
+
+        // Si pas√≥ del final, se cerr√≥ la l√≠nea
+        if (misionActual < 0 || misionActual >= misiones.Length)
+        {
+            Debug.Log("L√≠nea completada.");
+            lineaActiva = false;
+            EmitirUI(); // reflejar finalizaci√≥n
+            return;
+        }
+
+        Misiones m = misiones[misionActual];
+
+        if (m.InicioMision)
+        {
+            Debug.Log($"--- Misi√≥n: {m.NombreMision} ---");
+            Debug.Log($"Dificultad: {m.Dificultad}");
+            Debug.Log($"Descripci√≥n general:\n{m.InfoMision}");
+            // Si AutoSaltarInicioAlAceptar = true, ContinuarInicio() se llamar√° en ComenzarLinea().
+            return;
+        }
+
+        if (m.EsCaptura)
+        {
+            Debug.Log("[FASE CAPTURA ACTIVADA]");
+            Debug.Log($"Info captura: {m.InfoCaptura}");
+            Debug.Log($"Lib√©lulas Low: {m.LibelulaLow.Length} | High: {m.LibelulaHigt.Length}");
+            return;
+        }
+
+        if (m.EsRecoleccion)
+        {
+            Debug.Log("[FASE RECOLECCI√ìN ACTIVADA]");
+            Debug.Log($"Info recolecci√≥n: {m.InfoRecoleccion}");
+            Debug.Log($"Muestras: {m.Muestra.Length}");
+            return;
+        }
+
+        if (m.EsExploracion)
+        {
+            Debug.Log("[FASE EXPLORACI√ìN ACTIVADA]");
+            Debug.Log($"Info exploraci√≥n: {m.InfoExploracion}");
+            Debug.Log($"Zonas a visitar: {m.Lugar.Length}");
+            return;
+        }
+
+        if (m.EsMicroscopio)
+        {
+            Debug.Log("[FASE MICROSCOPIO ACTIVADA]");
+            Debug.Log($"Info microscopio: {m.InfoMicroscopio}");
+            return;
+        }
+
+        if (m.EsResultado)
+        {
+            Debug.Log("[FASE RESULTADO FINAL ACTIVADA]");
+            Debug.Log($"Info final: {m.InfoFinal}");
+            Debug.Log($"Datos desbloqueados: {m.InfoDesbloqueada}");
+            Debug.Log(">> (BD) Registrar misi√≥n completada y desbloquear info.");
+            lineaActiva = false;
+            EmitirUI(); // Finalizaci√≥n
+            return;
+        }
+
+        Debug.Log("Estado ACTUAL MISION = " + misionActual);
+    }
+
+    // ===================== APIS PARA GAMEPLAY =====================
+
+    /// <summary>
+    /// Para la fase de 'Inicio': avanza a la siguiente fase (tareas).
+    /// Se usa autom√°ticamente al comenzar si 'AutoSaltarInicioAlAceptar' est√° activo.
+    /// </summary>
+    public void ContinuarInicio()
+    {
+        if (_esperaTipo != "Inicio" || !lineaActiva) return;
+        _restante = 0;
+        OnMissionSubprogress?.Invoke(0, 1, "Inicio");
+        CompletarFaseActual();
+    }
+
+    // Captura (modo simple)
+    public void RegistrarCaptura(int cantidad = 1)
+    {
+        if (_esperaTipo != "Captura" || !lineaActiva) return;
+        if (_pendientesPorId != null)
+        {
+            Debug.LogWarning("Esta fase usa Captura por ID. Usa RegistrarCaptura(string id, int cantidad).");
+            return;
+        }
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), _totalObjetivoActual, "Captura");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    // Captura (por especie/ID)
+    public void RegistrarCaptura(string id, int cantidad = 1)
+    {
+        if (_esperaTipo != "Captura" || !lineaActiva) return;
+
+        if (_pendientesPorId != null)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            if (!_pendientesPorId.ContainsKey(id)) return; // ID no requerido -> ignorar
+
+            int rest = _pendientesPorId[id] - Mathf.Max(1, cantidad);
+            _pendientesPorId[id] = Mathf.Max(0, rest);
+
+            // Recalcular total restante
+            _totalRestanteActual = 0;
+            foreach (var kv in _pendientesPorId) _totalRestanteActual += kv.Value;
+
+            OnMissionSubprogress?.Invoke(_totalRestanteActual, _totalObjetivoActual, "Captura");
+            if (_totalRestanteActual <= 0) CompletarFaseActual();
+        }
+        else
+        {
+            // Fallback simple
+            RegistrarCaptura(cantidad);
+        }
+    }
+
+    // Recolecci√≥n (modo simple)
+    public void RegistrarRecoleccion(int cantidad = 1)
+    {
+        if (_esperaTipo != "Recoleccion" || !lineaActiva) return;
+        if (_pendientesPorId != null)
+        {
+            Debug.LogWarning("Esta fase usa Recolecci√≥n por ID. Usa RegistrarRecoleccion(string id, int cantidad).");
+            return;
+        }
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), _totalObjetivoActual, "Recoleccion");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    // Recolecci√≥n (por ID)
+    public void RegistrarRecoleccion(string id, int cantidad = 1)
+    {
+        if (_esperaTipo != "Recoleccion" || !lineaActiva) return;
+
+        if (_pendientesPorId != null)
+        {
+            if (string.IsNullOrEmpty(id)) return;
+            if (!_pendientesPorId.ContainsKey(id)) return; // ID no requerido -> ignorar
+
+            int rest = _pendientesPorId[id] - Mathf.Max(1, cantidad);
+            _pendientesPorId[id] = Mathf.Max(0, rest);
+
+            _totalRestanteActual = 0;
+            foreach (var kv in _pendientesPorId) _totalRestanteActual += kv.Value;
+
+            OnMissionSubprogress?.Invoke(_totalRestanteActual, _totalObjetivoActual, "Recoleccion");
+            if (_totalRestanteActual <= 0) CompletarFaseActual();
+        }
+        else
+        {
+            // Fallback simple
+            RegistrarRecoleccion(cantidad);
+        }
+    }
+
+    // Exploraci√≥n (visitar zonas)
+    public void RegistrarZonaExplorada(int cantidad = 1)
+    {
+        if (_esperaTipo != "Exploracion" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), _totalObjetivoActual, "Exploracion");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    // Microscopio (analizar muestras)
+    public void RegistrarAnalisisMicroscopio(int cantidad = 1)
+    {
+        if (_esperaTipo != "Microscopio" || !lineaActiva) return;
+        _restante -= Mathf.Max(1, cantidad);
+        OnMissionSubprogress?.Invoke(Mathf.Max(0, _restante), _totalObjetivoActual, "Microscopio");
+        if (_restante <= 0) CompletarFaseActual();
+    }
+
+    // Reporte gen√©rico (demo) ‚Äî sigue disponible
+    public void ReportarProgreso(string objetivoId, int delta = 1)
+    {
+        Debug.Log($"Reporte recibido: {objetivoId} (+{delta}). Completando fase actual.");
+        CompletarFaseActual();
     }
 }
