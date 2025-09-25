@@ -3,7 +3,12 @@ guid: 38aabb0bb48c88d43b301713a4e95d91
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Banco de mejora
+    second: {fileID: 2100000, guid: aab88337b3dc7e74bab40835cf104264, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0

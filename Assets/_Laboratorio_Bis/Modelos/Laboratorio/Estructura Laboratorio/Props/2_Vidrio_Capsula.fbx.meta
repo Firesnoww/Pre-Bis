@@ -3,7 +3,37 @@ guid: b02249553678716448ac5c8f49339c1c
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 1_Plantas
+    second: {fileID: 2100000, guid: 4a530b0424ef9954ea3cfb6ebbe43960, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 2_Plantas
+    second: {fileID: 2100000, guid: 2960073a509a70d4695a321f74564b4a, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 3_Plantas
+    second: {fileID: 2100000, guid: cfe6784e21442ca4193650e520d96b3f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 4_Plantas
+    second: {fileID: 2100000, guid: 98d37b8727613404da04b402229953a0, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 5_Plantas
+    second: {fileID: 2100000, guid: 537fe60773a7e9e4b91307f8abd0ed5e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Vidrios
+    second: {fileID: 2100000, guid: 28cfb36f0bfe14e48b5096e25703442e, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
