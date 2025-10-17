@@ -35,6 +35,7 @@ public class MainMisiones : MonoBehaviour
 
     // Acceso de solo lectura para comparar referencia en Asignador
     public Misiones[] LineaActual => misiones;
+    public bool FaseCapturaActiva => HayLineaActiva && (_esperaTipo == "Captura");
 
     // Helper para saber si una línea (array) es la misma referencia
     public bool EsMismaLinea(Misiones[] otraLinea)
