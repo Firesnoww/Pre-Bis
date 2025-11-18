@@ -26,6 +26,12 @@ public class Misiones : ScriptableObject
     public string InfoCaptura;
     public GameObject[] LibelulaLow;
     public GameObject[] LibelulaHigt;
+    [Header("Spawn (solo para fases de Captura)")]
+    public bool SpawnAlIniciarCaptura = true;
+    public string SpawnPointId;               // Id de punto de spawn en la escena
+    public GameObject PrefabDragonfly;        // Si lo dejas vacío, toma el primero de LibelulaLow/High
+    [Range(1, 10)] public int SpawnCantidad = 1;
+    public bool DespawnAlSalirDeCaptura = true; // destruir al completar/abortar o al cambiar de fase
 
     [Header("---------------RECOLECCION---------------")]
     public bool EsRecoleccion;
