@@ -4,4 +4,5 @@ using UnityEngine;
 public class FaseRecoleccion : FaseBase
 {
     // Datos específicos de recolección
+    
 }
