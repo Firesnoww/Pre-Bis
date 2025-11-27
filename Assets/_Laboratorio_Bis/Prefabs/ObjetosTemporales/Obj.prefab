@@ -100,13 +100,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   objetoAsociado: {fileID: 11400000, guid: e8b98586f0d36b045bcc65e392eb5666, type: 2}
-  meshRenderer: {fileID: 0}
+  meshRenderer: {fileID: 5256787430605563614}
   indexMaterialFresnel: 1
-  fresnelMax: 3.5
-  fresnelMin: 0
-  opacidadMax: 4.3
+  fresnelMax: 2.5
+  fresnelMin: 2.5
+  opacidadMax: 6
   opacidadMin: 0
-  velocidadTransicion: 2
+  velocidadTransicion: 1
 --- !u!114 &2623706814208750148
 MonoBehaviour:
   m_ObjectHideFlags: 0

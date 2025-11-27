@@ -27,60 +27,91 @@ public class Recolectable : MonoBehaviour
 
     private void Start()
     {
-        // Obtener el material fresnel desde el renderer
-        if (meshRenderer != null)
+        if (meshRenderer == null)
         {
-            fresnelMaterial = meshRenderer.materials[indexMaterialFresnel];
+            Debug.LogError($"[Recolectable] {gameObject.name} no tiene MeshRenderer asignado.");
+            return;
+        }
 
-            // Iniciarlo apagado
+        var mats = meshRenderer.materials;
+
+        // Buscamos automáticamente el material que tenga el shader del fresnel
+        for (int i = 0; i < mats.Length; i++)
+        {
+            if (mats[i].shader.name.Contains("Fresnel") ||
+                mats[i].name.Contains("Fresnel") ||
+                mats[i].name.Contains("Recoleccion"))
+            {
+                fresnelMaterial = mats[i];
+                break;
+            }
+        }
+
+        if (fresnelMaterial == null)
+        {
+            Debug.LogWarning($"[Recolectable] {gameObject.name} no tiene material Fresnel. Asignando material por índice {indexMaterialFresnel} (si existe).");
+
+            if (mats.Length > indexMaterialFresnel)
+                fresnelMaterial = mats[indexMaterialFresnel];
+        }
+
+        if (fresnelMaterial != null)
+        {
             fresnelMaterial.SetFloat("_Escala_Fresnel", fresnelMin);
             fresnelMaterial.SetFloat("_Opacidad", opacidadMin);
         }
+        else
+        {
+            Debug.LogError($"[Recolectable] No se pudo asignar material Fresnel en {gameObject.name}. Fresnel desactivado.");
+        }
     }
+
 
     private void Update()
     {
+        // 1. Si no hay fresnel, no hacemos efectos visuales pero seguimos dejando recolección funcionando
+        bool tieneFresnel = fresnelMaterial != null;
 
-        // Si NO es fase de recolección → apagar fresnel y no hacer nada
+        // 2. Si no es fase de recolección
         if (!FaseActualEsRecoleccion())
         {
-            if (fresnelMaterial != null)
+            if (tieneFresnel)
             {
-                float f = fresnelMaterial.GetFloat("_FresnelScale");
-                float o = fresnelMaterial.GetFloat("_Opacity");
+                fresnelMaterial.SetFloat("_Escala_Fresnel", Mathf.Lerp(
+                    fresnelMaterial.GetFloat("_Escala_Fresnel"), fresnelMin, Time.deltaTime * velocidadTransicion));
 
-                fresnelMaterial.SetFloat("_FresnelScale",
-                    Mathf.Lerp(f, fresnelMin, Time.deltaTime * velocidadTransicion));
-
-                fresnelMaterial.SetFloat("_Opacity",
-                    Mathf.Lerp(o, opacidadMin, Time.deltaTime * velocidadTransicion));
+                fresnelMaterial.SetFloat("_Opacidad", Mathf.Lerp(
+                    fresnelMaterial.GetFloat("_Opacidad"), opacidadMin, Time.deltaTime * velocidadTransicion));
             }
-
-            return; // <-- PROTECCIÓN CLAVE
-        }
-
-        if (GestorMisiones.instancia.ObjetivoDeRecoleccionYaCompleto(objetoAsociado))
-        {
-            // Apagar fresnel suavemente
-            fresnelMaterial.SetFloat("_Escala_Fresnel",
-                Mathf.Lerp(fresnelMaterial.GetFloat("_Escala_Fresnel"), fresnelMin, Time.deltaTime * velocidadTransicion));
-
-            fresnelMaterial.SetFloat("_Opacidad",
-                Mathf.Lerp(fresnelMaterial.GetFloat("_Opacidad"), opacidadMin, Time.deltaTime * velocidadTransicion));
 
             return;
         }
-        // Animación de acercar/alejar
-        if (fresnelMaterial != null)
+
+        // 3. Si el objetivo YA está completo
+        if (GestorMisiones.instancia.ObjetivoDeRecoleccionYaCompleto(objetoAsociado))
         {
-            // Si no es parte de la misión → fresnel apagado siempre
-            if (!EsParteDeLaMisionActual())
+            if (tieneFresnel)
             {
                 fresnelMaterial.SetFloat("_Escala_Fresnel", Mathf.Lerp(fresnelMaterial.GetFloat("_Escala_Fresnel"), fresnelMin, Time.deltaTime * velocidadTransicion));
                 fresnelMaterial.SetFloat("_Opacidad", Mathf.Lerp(fresnelMaterial.GetFloat("_Opacidad"), opacidadMin, Time.deltaTime * velocidadTransicion));
-                return;
             }
+            return;
+        }
 
+        // 4. Si NO es parte de la misión activa
+        if (!EsParteDeLaMisionActual())
+        {
+            if (tieneFresnel)
+            {
+                fresnelMaterial.SetFloat("_Escala_Fresnel", Mathf.Lerp(fresnelMaterial.GetFloat("_Escala_Fresnel"), fresnelMin, Time.deltaTime * velocidadTransicion));
+                fresnelMaterial.SetFloat("_Opacidad", Mathf.Lerp(fresnelMaterial.GetFloat("_Opacidad"), opacidadMin, Time.deltaTime * velocidadTransicion));
+            }
+            return;
+        }
+
+        // 5. Si SÍ es parte de la misión
+        if (tieneFresnel)
+        {
             float objetivoFresnel = jugadorCerca ? fresnelMax : fresnelMin;
             float objetivoOpacidad = jugadorCerca ? opacidadMax : opacidadMin;
 
@@ -88,16 +119,16 @@ public class Recolectable : MonoBehaviour
             fresnelMaterial.SetFloat("_Opacidad", Mathf.Lerp(fresnelMaterial.GetFloat("_Opacidad"), objetivoOpacidad, Time.deltaTime * velocidadTransicion));
         }
 
-        // Si el jugador está cerca y presiona E → intentar recolectar
+        // 6. Recolección
         if (jugadorCerca
-     && Input.GetKeyDown(KeyCode.E)
-     && EsParteDeLaMisionActual()
-     && !GestorMisiones.instancia.ObjetivoDeRecoleccionYaCompleto(objetoAsociado))
+            && Input.GetKeyDown(KeyCode.E)
+            && EsParteDeLaMisionActual()
+            && !GestorMisiones.instancia.ObjetivoDeRecoleccionYaCompleto(objetoAsociado))
         {
             IntentarRecolectar();
         }
-
     }
+
 
     private void OnTriggerEnter(Collider other)
     {
