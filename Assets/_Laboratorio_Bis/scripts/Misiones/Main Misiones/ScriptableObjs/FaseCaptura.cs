@@ -3,6 +3,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "FaseCaptura", menuName = "Misiones/Fases/Captura")]
 public class FaseCaptura : FaseBase
 {
-    // Aquí luego metes cosas específicas de captura
-    // por ahora lo dejamos vacío para probar el flujo
+    [System.Serializable]
+    public class ObjetivoCaptura
+    {
+        public ObjetoLibelula libelula;
+        public int cantidadRequerida;
+    }
+
+    public ObjetivoCaptura[] objetivos;
 }

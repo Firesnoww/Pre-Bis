@@ -8,41 +8,40 @@ public class GestorMisiones : MonoBehaviour
     private DatosDeMision misionActual;
     private int indiceFaseActual = 0;
 
-    // Control interno del temporizador
     private Coroutine rutinaActual;
 
-    private bool[] misionesCompletadas = new bool[1000]; // Cambia tamaño si necesitas más
+    private bool[] misionesCompletadas = new bool[1000];
+
+    // Datos de recolección
+    private int[] progresoRecoleccionActual;
+    private FaseRecoleccion faseRecoleccionActual;
 
     private void Awake()
     {
         instancia = this;
     }
 
-    // -----------------------------------
+    // ------------------------------------------------------
     // INICIAR MISIÓN
-    // -----------------------------------
+    // ------------------------------------------------------
     public void IniciarMision(DatosDeMision nuevaMision)
     {
         misionActual = nuevaMision;
         indiceFaseActual = 0;
 
         Debug.Log("Misión iniciada: " + misionActual.nombreMision);
+
         UI_MisionActiva.instancia.MostrarMision(misionActual, misionActual.fases[0]);
 
         InterpretarFaseActual();
     }
 
-    // -----------------------------------
-    // INTERPRETAR TIPO DE FASE
-    // (Opción C: solo tiempo fake)
-    // -----------------------------------
+    // ------------------------------------------------------
+    // INTERPRETAR FASE ACTUAL
+    // ------------------------------------------------------
     private void InterpretarFaseActual()
     {
-        if (misionActual == null)
-        {
-            Debug.LogWarning("No hay misión activa.");
-            return;
-        }
+        if (misionActual == null) return;
 
         if (indiceFaseActual >= misionActual.fases.Length)
         {
@@ -51,66 +50,55 @@ public class GestorMisiones : MonoBehaviour
         }
 
         FaseBase fase = misionActual.fases[indiceFaseActual];
+
         UI_MisionActiva.instancia.ActualizarFase(fase);
+        ActualizarObjetivosEnUI(); // <- seguro aquí no da error
 
+        Debug.Log("Iniciando fase: " + fase.nombreFase);
 
-        Debug.Log("Iniciando fase " + indiceFaseActual + ": " + fase.nombreFase);
-
-        // Cancelar rutina anterior, si existe
+        // Cancelar tiempo anterior
         if (rutinaActual != null)
             StopCoroutine(rutinaActual);
 
-        // Elegir tiempo según tipo de fase
-        float tiempo = 2f; // default
+        // -------------------------------
+        // FASE DE RECOLECCIÓN (REAL)
+        // -------------------------------
+        if (fase is FaseRecoleccion)
+        {
+            faseRecoleccionActual = (FaseRecoleccion)fase;
 
-        if (fase is FaseCaptura)
-        {
-            tiempo = 3f;
-            Debug.Log("Fase tipo CAPTURA → tiempo fake: " + tiempo);
-        }
-        else if (fase is FaseExploracion)
-        {
-            tiempo = 2f;
-            Debug.Log("Fase tipo EXPLORACIÓN → tiempo fake: " + tiempo);
-        }
-        else if (fase is FaseRecoleccion)
-        {
-            tiempo = 4f;
-            Debug.Log("Fase tipo RECOLECCIÓN → tiempo fake: " + tiempo);
-        }
-        else if (fase is FaseMicroscopio)
-        {
-            tiempo = 5f;
-            Debug.Log("Fase tipo MICROSCOPIO → tiempo fake: " + tiempo);
+            int totalObjetivos = faseRecoleccionActual.objetivos.Length;
+            progresoRecoleccionActual = new int[totalObjetivos];
+
+            Debug.Log("Fase RECOLECCIÓN iniciada.");
+            ActualizarObjetivosEnUI();
+            return; // NO usar temporizador
         }
 
-        // Ejecutar finalización falsa de fase
+        // -------------------------------
+        // FASES FALSAS (TEMPORIZADOR)
+        // -------------------------------
+        float tiempo = 2f;
+
+        if (fase is FaseCaptura) tiempo = 3f;
+        if (fase is FaseExploracion) tiempo = 2f;
+        if (fase is FaseMicroscopio) tiempo = 5f;
+
         rutinaActual = StartCoroutine(FakeCompletarFase(tiempo));
     }
 
-
-    // -----------------------------------
-    // CORUTINA QUE ESPERA TIEMPO FAKE
-    // -----------------------------------
     private IEnumerator FakeCompletarFase(float segundos)
     {
-        Debug.Log("Completando fase en " + segundos + " segundos...");
         yield return new WaitForSeconds(segundos);
-
         CompletarFaseActual();
     }
 
-
-    // -----------------------------------
+    // ------------------------------------------------------
     // COMPLETAR FASE
-    // -----------------------------------
+    // ------------------------------------------------------
     public void CompletarFaseActual()
     {
-        if (misionActual == null)
-        {
-            Debug.LogWarning("Intento de completar fase sin misión activa.");
-            return;
-        }
+        if (misionActual == null) return;
 
         Debug.Log("Fase completada: " + misionActual.fases[indiceFaseActual].nombreFase);
 
@@ -125,9 +113,9 @@ public class GestorMisiones : MonoBehaviour
         InterpretarFaseActual();
     }
 
-    // -----------------------------------
+    // ------------------------------------------------------
     // FINALIZAR MISIÓN
-    // -----------------------------------
+    // ------------------------------------------------------
     private void FinalizarMision()
     {
         Debug.Log("¡Misión COMPLETADA!: " + misionActual.nombreMision);
@@ -136,18 +124,15 @@ public class GestorMisiones : MonoBehaviour
 
         misionActual = null;
         indiceFaseActual = 0;
+
         UI_MisionActiva.instancia.OcultarMision();
-
+        UI_MisionActiva.instancia.textoObjetivos.text = "";
     }
 
-
-    // -----------------------------------
-    // FUNCIONES QUE USA EL NPC
-    // -----------------------------------
-    public bool HayMisionActiva()
-    {
-        return misionActual != null;
-    }
+    // ------------------------------------------------------
+    // FUNCIONES PARA NPC
+    // ------------------------------------------------------
+    public bool HayMisionActiva() => misionActual != null;
 
     public int MisionActualID()
     {
@@ -155,8 +140,133 @@ public class GestorMisiones : MonoBehaviour
         return misionActual.idMision;
     }
 
-    public bool MisionYaCompletada(int id)
+    public bool MisionYaCompletada(int id) => misionesCompletadas[id];
+
+    // ------------------------------------------------------
+    // RECOLECCIÓN REAL
+    // ------------------------------------------------------
+    public bool RecogerObjeto(ObjetoRecoleccion objeto)
     {
-        return misionesCompletadas[id];
+        if (misionActual == null) return false;
+
+        if (!(misionActual.fases[indiceFaseActual] is FaseRecoleccion))
+            return false; // <- MUY IMPORTANTE
+
+        // Buscar objetivo válido
+        for (int i = 0; i < faseRecoleccionActual.objetivos.Length; i++)
+        {
+            if (faseRecoleccionActual.objetivos[i].objeto == objeto)
+            {
+                progresoRecoleccionActual[i]++;
+
+                Debug.Log($"Recolectado {objeto.nombreObjeto} ({progresoRecoleccionActual[i]}/{faseRecoleccionActual.objetivos[i].cantidadRequerida})");
+
+                ActualizarObjetivosEnUI();
+
+                // Verificar si completó la fase
+                for (int j = 0; j < progresoRecoleccionActual.Length; j++)
+                {
+                    if (progresoRecoleccionActual[j] < faseRecoleccionActual.objetivos[j].cantidadRequerida)
+                        return true;
+                }
+
+                Debug.Log("Todos los objetos recolectados. Fase completada.");
+
+                CompletarFaseActual();
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    // ------------------------------------------------------
+    // ACTUALIZAR OBJETIVOS EN UI
+    // ------------------------------------------------------
+    private void ActualizarObjetivosEnUI()
+    {
+        if (misionActual == null) return;
+
+        FaseBase fase = misionActual.fases[indiceFaseActual];
+
+        // PRIMERO: revisamos si es recolección
+        if (!(fase is FaseRecoleccion))
+        {
+            // No es fase de recolección → limpiar UI y salir
+            UI_MisionActiva.instancia.textoObjetivos.text = "";
+            return;
+        }
+
+        // AHORA SÍ podemos hacer cast seguro
+        FaseRecoleccion fr = (FaseRecoleccion)fase;
+
+        // PROTECCIÓN CRÍTICA
+        if (progresoRecoleccionActual == null ||
+            progresoRecoleccionActual.Length != fr.objetivos.Length)
+            return;
+
+        string info = "";
+
+        for (int i = 0; i < fr.objetivos.Length; i++)
+        {
+            info += $"• {fr.objetivos[i].objeto.nombreObjeto} ({progresoRecoleccionActual[i]}/{fr.objetivos[i].cantidadRequerida})\n";
+        }
+
+        UI_MisionActiva.instancia.textoObjetivos.text = info;
+    }
+
+
+    // ------------------------------------------------------
+    // VER SI UN OBJETO PERTENECE A LA FASE
+    // ------------------------------------------------------
+    public bool ObjetoEsParteDeRecoleccion(ObjetoRecoleccion obj)
+    {
+        if (misionActual == null) return false;
+
+        FaseBase fase = misionActual.fases[indiceFaseActual];
+        if (!(fase is FaseRecoleccion)) return false;
+
+        var fr = (FaseRecoleccion)fase;
+
+        foreach (var objetivo in fr.objetivos)
+        {
+            if (objetivo.objeto == obj)
+                return true;
+        }
+
+        return false;
+    }
+
+    public bool ObjetivoDeRecoleccionYaCompleto(ObjetoRecoleccion objeto)
+    {
+        if (misionActual == null) return false;
+
+        if (!(misionActual.fases[indiceFaseActual] is FaseRecoleccion))
+            return false;
+
+        var fr = (FaseRecoleccion)misionActual.fases[indiceFaseActual];
+
+        // PROTECCIÓN CRÍTICA
+        if (progresoRecoleccionActual == null ||
+            progresoRecoleccionActual.Length != fr.objetivos.Length)
+            return false;
+
+        for (int i = 0; i < fr.objetivos.Length; i++)
+        {
+            if (fr.objetivos[i].objeto == objeto)
+            {
+                return progresoRecoleccionActual[i] >= fr.objetivos[i].cantidadRequerida;
+            }
+        }
+
+        return false;
+    }
+    public bool FaseActualEsRecoleccion()
+    {
+        if (misionActual == null) return false;
+        if (indiceFaseActual >= misionActual.fases.Length) return false;
+
+        return misionActual.fases[indiceFaseActual] is FaseRecoleccion;
+    }
+    
 }

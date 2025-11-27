@@ -13,6 +13,7 @@ public class UI_MisionActiva : MonoBehaviour
     public TMP_Text textoNombreMision;
     public TMP_Text textoFase;
     public TMP_Text textoDescripcionFase;
+    public TMP_Text textoObjetivos;
 
     private void Awake()
     {

@@ -15,3 +15,8 @@ MonoBehaviour:
   idFase: 4
   nombreFase: FaseRecoleccion
   descripcionFase: FaseRecoleccion text
+  objetivos:
+  - objeto: {fileID: 11400000, guid: e8b98586f0d36b045bcc65e392eb5666, type: 2}
+    cantidadRequerida: 3
+  - objeto: {fileID: 11400000, guid: 88fd0df0e749e234aab91d8a9fb1e041, type: 2}
+    cantidadRequerida: 3

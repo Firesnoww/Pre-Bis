@@ -13,10 +13,7 @@ MonoBehaviour:
   m_Name: Mision # 1
   m_EditorClassIdentifier: 
   idMision: 101
-  nombreMision: Primera Mision
-  descripcionMision: 'Primera mision inforamcion de base '
+  nombreMision: En busqueda de los cubos perdidos
+  descripcionMision: No sabemos donde quedaron ocultos los cubos, encuntralos
   fases:
-  - {fileID: 11400000, guid: 2510bfb821c878744a25754a4dbc0f5a, type: 2}
-  - {fileID: 11400000, guid: 28d542d7e917cf14f8e5dd6d4d246077, type: 2}
-  - {fileID: 11400000, guid: 63340a4f746e7574da3eb6a91041fc38, type: 2}
-  - {fileID: 11400000, guid: 9bbab2516d975d342bd712890edb34bd, type: 2}
+  - {fileID: 11400000, guid: 53ead3afab482d34cad2d83c456ba5f2, type: 2}
