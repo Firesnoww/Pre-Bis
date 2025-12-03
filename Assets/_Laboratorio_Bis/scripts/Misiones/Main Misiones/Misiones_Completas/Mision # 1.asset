@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10b3c7fa575959b4c86f82c087a5fe77, type: 3}
   m_Name: Mision # 1
   m_EditorClassIdentifier: 
-  idMision: 101
+  idMision: 1
   nombreMision: En busqueda de los cubos perdidos
   descripcionMision: No sabemos donde quedaron ocultos los cubos, encuntralos
   fases:

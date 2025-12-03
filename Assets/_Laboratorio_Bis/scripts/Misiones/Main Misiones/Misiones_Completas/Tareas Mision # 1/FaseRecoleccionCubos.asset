@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6125ff17319fd0d43802752c20742f46, type: 3}
   m_Name: FaseRecoleccionCubos
   m_EditorClassIdentifier: 
-  idFase: 1013
+  idFase: 1
   nombreFase: Recolecta los cubos
   descripcionFase: Prueba con los cubos rojos esta vez, aprende a recogerlos isisis
   objetivos:

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10b3c7fa575959b4c86f82c087a5fe77, type: 3}
   m_Name: Mision # 3
   m_EditorClassIdentifier: 
-  idMision: 301
+  idMision: 3
   nombreMision: Tercera Mision
   descripcionMision: tercera mision
   fases:

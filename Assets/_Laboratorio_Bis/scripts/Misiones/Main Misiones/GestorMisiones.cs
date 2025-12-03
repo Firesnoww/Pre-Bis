@@ -17,6 +17,7 @@ public class GestorMisiones : MonoBehaviour
     private int[] progresoRecoleccionActual;
     private FaseRecoleccion faseRecoleccionActual;
 
+    public DatosDeMision[] todasLasMisiones;
     private void Awake()
     {
         instancia = this;
@@ -72,7 +73,8 @@ public class GestorMisiones : MonoBehaviour
             progresoRecoleccionActual = new int[totalObjetivos];
 
             Debug.Log("Fase RECOLECCIÓN iniciada.");
-            ActualizarObjetivosEnUI();
+            ActualizarObjetivosEnUI();           
+
             return; // NO usar temporizador
         }
 
@@ -108,10 +110,15 @@ public class GestorMisiones : MonoBehaviour
         if (indiceFaseActual >= misionActual.fases.Length)
         {
             FinalizarMision();
-            return;
+        }
+        else
+        {
+            InterpretarFaseActual();
         }
 
-        InterpretarFaseActual();
+        // 🔹 GUARDADO AUTOMÁTICO AL CAMBIAR DE FASE
+        if (SistemaGuardado.instancia != null)
+            SistemaGuardado.instancia.GuardarDatos();
     }
 
     // ------------------------------------------------------
@@ -157,7 +164,8 @@ public class GestorMisiones : MonoBehaviour
                 Debug.Log($"Recolectado {objeto.nombreObjeto} ({progresoRecoleccionActual[i]}/{faseRecoleccionActual.objetivos[i].cantidadRequerida})");
 
                 ActualizarObjetivosEnUI();
-
+                if (SistemaGuardado.instancia != null)
+                    SistemaGuardado.instancia.GuardarDatos();
                 // Verificar si completó la fase
                 for (int j = 0; j < progresoRecoleccionActual.Length; j++)
                 {
@@ -357,7 +365,7 @@ public class GestorMisiones : MonoBehaviour
         InterpretarFaseActual(); // continúa normal
     }
 
-   /* public DatosDeMision BuscarMisionPorID(int id)
+   public DatosDeMision BuscarMisionPorID(int id)
     {
         // Aquí debes conectar con tus ScriptableObjects
         foreach (var m in todasLasMisiones)
@@ -367,5 +375,5 @@ public class GestorMisiones : MonoBehaviour
         }
 
         return null;
-    }*/
+    }
 }

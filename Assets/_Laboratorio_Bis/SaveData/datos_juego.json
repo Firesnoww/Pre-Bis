@@ -1,0 +1,17 @@
+{
+    "misiones": {
+        "misionActivaID": 2,
+        "faseActiva": 1,
+        "progresoFase": {},
+        "misionesCompletadas": []
+    },
+    "objetos": {
+        "objetos": {}
+    },
+    "analisis": {
+        "analisis": {}
+    },
+    "captura": {
+        "libelulas": {}
+    }
+}
