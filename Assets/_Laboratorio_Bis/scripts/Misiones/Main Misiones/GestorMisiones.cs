@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class GestorMisiones : MonoBehaviour
 {
@@ -134,12 +135,6 @@ public class GestorMisiones : MonoBehaviour
     // ------------------------------------------------------
     public bool HayMisionActiva() => misionActual != null;
 
-    public int MisionActualID()
-    {
-        if (misionActual == null) return -1;
-        return misionActual.idMision;
-    }
-
     public bool MisionYaCompletada(int id) => misionesCompletadas[id];
 
     // ------------------------------------------------------
@@ -268,5 +263,109 @@ public class GestorMisiones : MonoBehaviour
 
         return misionActual.fases[indiceFaseActual] is FaseRecoleccion;
     }
-    
+
+
+    //
+
+    // ------------------------------------------------------
+    // DEVOLVER ID MISIÓN ACTIVA
+    // ------------------------------------------------------
+    public int MisionActualID()
+    {
+        if (misionActual == null) return -1;
+        return misionActual.idMision;
+    }
+
+    // ------------------------------------------------------
+    // DEVOLVER ÍNDICE DE FASE ACTUAL
+    // ------------------------------------------------------
+    public int FaseActualIndex()
+    {
+        return indiceFaseActual;
+    }
+
+    // ------------------------------------------------------
+    // CONVERTIR PROGRESO A DICCIONARIO SERIALIZABLE
+    // ------------------------------------------------------
+    public SerializableDictionary<string, int> ObtenerProgresoActualComoDiccionario()
+    {
+        var dict = new SerializableDictionary<string, int>();
+
+        if (misionActual == null) return dict;
+
+        if (misionActual.fases[indiceFaseActual] is FaseRecoleccion)
+        {
+            for (int i = 0; i < progresoRecoleccionActual.Length; i++)
+            {
+                dict[i.ToString()] = progresoRecoleccionActual[i];
+            }
+        }
+
+        return dict;
+    }
+
+    // ------------------------------------------------------
+    // DEVOLVER MISIONES COMPLETADAS COMO ARRAY
+    // ------------------------------------------------------
+    public int[] ObtenerMisionesCompletadasArray()
+    {
+        List<int> lista = new List<int>();
+
+        for (int i = 0; i < misionesCompletadas.Length; i++)
+        {
+            if (misionesCompletadas[i])
+                lista.Add(i);
+        }
+
+        return lista.ToArray();
+    }
+    // ------------------------------------------------------
+    // CARGAR MISIÓN DESDE ARCHIVO DE GUARDADO
+    // ------------------------------------------------------
+    public void CargarMisionDesdeDatos(
+        DatosDeMision mision,
+        int faseGuardada,
+        SerializableDictionary<string, int> progresoGuardado)
+    {
+        misionActual = mision;
+        indiceFaseActual = faseGuardada;
+
+        Debug.Log("Cargando misión desde datos: " + mision.nombreMision);
+
+        UI_MisionActiva.instancia.MostrarMision(misionActual, misionActual.fases[indiceFaseActual]);
+        FaseBase fase = misionActual.fases[indiceFaseActual];
+
+        // --------------------------------------------------
+        // Si la fase es de recolección → aplicar progreso
+        // --------------------------------------------------
+        if (fase is FaseRecoleccion)
+        {
+            faseRecoleccionActual = (FaseRecoleccion)fase;
+
+            progresoRecoleccionActual =
+                new int[faseRecoleccionActual.objetivos.Length];
+
+            foreach (var kv in progresoGuardado)
+            {
+                int index = int.Parse(kv.Key);
+                progresoRecoleccionActual[index] = kv.Value;
+            }
+        }
+
+        ActualizarObjetivosEnUI();
+
+        InterpretarFaseActual(); // continúa normal
+    }
+
+   /* public DatosDeMision BuscarMisionPorID(int id)
+    {
+        // Aquí debes conectar con tus ScriptableObjects
+        foreach (var m in todasLasMisiones)
+        {
+            if (m.idMision == id)
+                return m;
+        }
+
+        return null;
+    }*/
 }
