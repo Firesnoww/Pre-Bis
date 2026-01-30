@@ -56,7 +56,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: 2a3a73a8a9e03694891d070b2bc329e8, type: 3}
+        m_Texture: {fileID: 2800000, guid: 189277607063d9148b20e5dbe399aa2d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Mask:
@@ -68,7 +68,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
-        m_Texture: {fileID: 2800000, guid: d09f60fc09c6be3478c659d7a84dce40, type: 3}
+        m_Texture: {fileID: 2800000, guid: 780636217a29faf4ba147c844736f84e, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _ParallaxMap:
@@ -124,7 +124,7 @@ Material:
     - _Metallic: 0
     - _Mode: 0
     - _OcclusionStrength: 1
-    - _OpacityThreshold: 0.1
+    - _OpacityThreshold: 0.2
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
