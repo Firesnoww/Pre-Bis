@@ -18,7 +18,7 @@ ModelImporter:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
       name: 3_Hojas
-    second: {fileID: 2100000, guid: ab4dfacce0ee1b243b9526e8dcaa548d, type: 2}
+    second: {fileID: 2100000, guid: 61a5239b2c507054b90feed3e19cec5c, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
