@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 10b3c7fa575959b4c86f82c087a5fe77, type: 3}
+  m_Name: Mision # 3
+  m_EditorClassIdentifier: 
+  idMision: 3
+  nombreMision: Tercera Mision
+  descripcionMision: tercera mision
+  fases:
+  - {fileID: 11400000, guid: 63340a4f746e7574da3eb6a91041fc38, type: 2}
+  - {fileID: 11400000, guid: 2510bfb821c878744a25754a4dbc0f5a, type: 2}
+  - {fileID: 11400000, guid: 9bbab2516d975d342bd712890edb34bd, type: 2}
+  - {fileID: 11400000, guid: 28d542d7e917cf14f8e5dd6d4d246077, type: 2}

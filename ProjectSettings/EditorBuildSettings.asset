@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/_Laboratorio_Bis/Scenes/Escena montaje previo.unity
+    path: Assets/_Laboratorio_Bis/Scenes/BIS/Escena montaje previo.unity
     guid: 7769f33fb4fa2e5458344a36556ad760
   m_configObjects: {}
